@@ -1,0 +1,56 @@
+---
+- name: Ensure ansible_facts since their not available when template is run with tags
+  ansible.builtin.setup:
+- name: Install Python dependencies
+  ansible.builtin.pip:
+    virtualenv: /usr/local/share/vnstat-exporter
+    name: "{{ python_packages }}"
+    state: present
+- name: Create vnstat group
+  ansible.builtin.group:
+    name: "{{ exporter_group }}"
+    state: present
+- name: Create vnstat user
+  ansible.builtin.user:
+    name: "{{ exporter_user }}"
+    group: "{{ exporter_group }}"
+    system: true
+    shell: /sbin/nologin
+    create_home: true
+- name: Add vnstat user to vnstat group
+  ansible.builtin.user:
+    name: "{{ exporter_user }}"
+    groups: vnstat
+    append: true
+- name: Create exporter directory
+  ansible.builtin.file:
+    path: /usr/local/share/vnstat-exporter/bin/
+    state: directory
+    owner: "{{ exporter_user }}"
+    group: "{{ exporter_group }}"
+    mode: "0755"
+    recurse: true
+- name: Copy vnstat exporter script
+  ansible.builtin.copy:
+    src: files/vnstat-exporter.py
+    dest: /usr/local/share/vnstat-exporter/bin/vnstat-exporter.py
+    owner: "{{ exporter_user }}"
+    group: "{{ exporter_group }}"
+    mode: "0755"
+- name: Install systemd service
+  ansible.builtin.template:
+    src: templates/vnstat-exporter.service.j2
+    dest: /etc/systemd/system/vnstat-exporter.service
+    mode: "0644"
+  notify: Restart vnstat-exporter
+- name: Enable and start vnstat service
+  ansible.builtin.systemd:
+    name: vnstat
+    state: started
+    enabled: true
+- name: Enable and start vnstat service
+  ansible.builtin.systemd:
+    name: vnstat-exporter
+    state: started
+    enabled: true
+    daemon_reload: true
