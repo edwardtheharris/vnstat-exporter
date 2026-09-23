@@ -1,0 +1,8 @@
+---
+- name: Install vnstat exporter
+  hosts: all
+  roles:
+    - role: vnstat-exporter
+      tags:
+        - vnstat
+      become: true
