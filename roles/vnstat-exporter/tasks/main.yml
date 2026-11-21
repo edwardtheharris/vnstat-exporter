@@ -42,12 +42,6 @@
     src: templates/vnstat-exporter.service.j2
     dest: /etc/systemd/system/vnstat-exporter.service
     mode: "0644"
-  notify: Restart vnstat-exporter
-- name: Enable and start vnstat service
-  ansible.builtin.systemd:
-    name: vnstat
-    state: started
-    enabled: true
 - name: Enable and start vnstat service
   ansible.builtin.systemd:
     name: vnstat-exporter
